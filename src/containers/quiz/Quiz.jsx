@@ -2,6 +2,8 @@ import React, { Component } from "react";
 import classes from "./Quiz.css";
 import ActiveQuiz from "../../components/ActiveQuiz/ActiveQuiz";
 import FinishedQuiz from "../../components/FinishedQuiz/FinishedQuiz";
+import axios from "../../axios/axios-quiz";
+import Loader from "../../components/ui/Loader/Loader";
 
 class Quiz extends Component {
   state = {
@@ -9,30 +11,8 @@ class Quiz extends Component {
     isFinished: false,
     activeQuestion: 0,
     answerState: null,
-    quiz: [
-      {
-        id: 1,
-        question: "What color is the sky?",
-        rightAnswerId: 2,
-        answers: [
-          { id: 1, text: "Black" },
-          { id: 2, text: "Blue" },
-          { id: 3, text: "Red" },
-          { id: 4, text: "Green" }
-        ]
-      },
-      {
-        id: 2,
-        question: "In what year was Saint-Petersburg founded?",
-        rightAnswerId: 3,
-        answers: [
-          { id: 1, text: "1700" },
-          { id: 2, text: "1702" },
-          { id: 3, text: "1703" },
-          { id: 4, text: "1803" }
-        ]
-      }
-    ]
+    quiz: [],
+    loading: true
   };
 
   onAnswerClickHandler = answerId => {
@@ -87,8 +67,20 @@ class Quiz extends Component {
     });
   };
 
-  componentDidMount() {
-    console.log("Quiz ID = ", this.props.match.params.id);
+  async componentDidMount() {
+    try {
+      const response = await axios.get(
+        `quizes/${this.props.match.params.id}.json`
+      );
+      const quiz = response.data;
+
+      this.setState({
+        quiz,
+        loading: false
+      });
+    } catch (e) {
+      console.log(e);
+    }
   }
 
   render() {
@@ -97,7 +89,9 @@ class Quiz extends Component {
         <div className={classes.quizWrapper}>
           <h1>Answer all the questions</h1>
 
-          {this.state.isFinished ? (
+          {this.state.loading ? (
+            <Loader />
+          ) : this.state.isFinished ? (
             <FinishedQuiz
               results={this.state.results}
               quiz={this.state.quiz}
